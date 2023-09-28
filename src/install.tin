@@ -1,0 +1,6 @@
+package require tin 1.0
+tin depend vutil @VUTIL_VERSION@
+tin depend ndlist @NDLIST_VERSION@
+tin depend taboo @TABOO_VERSION@
+set dir [tin mkdir -force tio @VERSION@]
+file copy pkgIndex.tcl tio.tcl README.md LICENSE $dir
