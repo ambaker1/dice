@@ -10,14 +10,12 @@
 ################################################################################
 
 # Required packages
-package require vutil @VUTIL_VERSION@
 package require ndlist @NDLIST_VERSION@
-package require taboo @TABOO_VERSION@
 
 # Define namespace
 namespace eval ::tio {
     # Basic file input/output
-    namespace export fread fputs; # basic read/write (raw strings)
+    namespace export fread fputs; # basic read/write
     namespace export mread mputs; # matrix read/write
     namespace export tread tputs; # table read/write
     # Data conversions
@@ -40,40 +38,39 @@ namespace eval ::tio {
 # fread <$options ...> <-newline> $file
 #
 # Arguments:
-# options:          Options to pass to "fconfigure"
-# -newline:         Read the last newline (default ignores last newline)
-# file:             File to read from
+# options:          Options to pass to "fconfigure".
+# -newline:         Read the last newline (default ignores last newline).
+# file:             File to read from.
 
 proc ::tio::fread {args} {
-    # Check arity
-    if {[llength $args] == 0} {
-        return -code error "wrong # args: should be \"fread\
-                ?option value ...? ?-newline? file\""
-    }
-    # Parse optional arguments
-    set options [lrange $args 0 end-1]
-    set nonewline true
-    if {[llength $options]%2 == 1} {
-        if {[lindex $options end] ne "-newline"} {
-            return -code error "wrong # args: should be \"fread\
-                    ?option value ...? ?-newline? file\""
-        }
+    # Check for -newline option
+    if {[lindex $args end-1] eq "-newline"} {
         set nonewline false
-        set options [lrange $options 0 end-1]; # trim -newline
-    }
-    # Interpret remaining args
-    set file [lindex $args end]
-    set options [lrange $args 0 end-1]
-    # Try to open file for reading, and configure as specified
-    set fid [open $file r]
-    fconfigure $fid {*}$options
-    # Read string from file
-    if {$nonewline} {
-        set string [read -nonewline $fid]
+        set args [lreplace $args end-1 end-1]
     } else {
-        set string [read $fid]
+        set nonewline true
     }
-    close $fid
+    # Check arity
+    if {[llength $args] == 0 || [llength $args] % 2 == 0} {
+        return -code error "wrong # args: should be\
+                \"fread ?option value ...? ?-newline? file\""
+    }
+    # Interpret input
+    set options [lrange $args 0 end-1]
+    set file [lindex $args end]
+    # Open file for reading, and try to configure and read data.
+    set fid [open $file r]
+    try {
+        fconfigure $fid {*}$options
+        # Read string from file
+        if {$nonewline} {
+            set string [read -nonewline $fid]
+        } else {
+            set string [read $fid]
+        }
+    } finally {
+        close $fid
+    }
     return $string
 }
 
@@ -82,145 +79,164 @@ proc ::tio::fread {args} {
 # Overwrite file with data, with additional options
 #
 # Syntax:
-# fputs <$options ...> <-nonewline> $file $string
+# fputs <$options ...> $file $string
 #
 # Arguments:
-# options:          Options to pass to "fconfigure"
-# -nonewline:       Option to not write a final newline
-# file:             File to write to
-# string:           String to write to file
+# options:          Options to pass to "fconfigure".
+# -nonewline:       Option to not write a final newline.
+# file:             File to write to.
+# string:           String to write to file.
 
 proc ::tio::fputs {args} {
-    # Check arity
-    if {[llength $args] < 2} {
-        return -code error "wrong # args: should be \"fputs\
-                ?option value ...? ?-nonewline? file string\""
-    }
-    # Parse optional arguments
-    set options [lrange $args 0 end-2]
-    set nonewline false
-    if {[llength $options]%2 == 1} {
-        if {[lindex $options end] ne "-nonewline"} {
-            return -code error "wrong # args: should be \"fputs\
-                    ?option value ...? ?-nonewline? file string\""
-        }
+    # Check for -nonewline option
+    if {[lindex $args end-2] eq "-nonewline"} {
         set nonewline true
-        set options [lrange $options 0 end-1]; # trim -nonewline
+        set args [lreplace $args end-2 end-2]
+    } else {
+        set nonewline false
     }
-    # Interpret remaining args
+    # Check arity
+    if {[llength $args] < 2 || [llength $args] % 2 == 1} {
+        return -code error "wrong # args: should be \
+                \"fputs ?option value ...? ?-nonewline? file string\""
+    }
+    # Interpret input
+    set options [lrange $args 0 end-2]
     set file [lindex $args end-1]
     set string [lindex $args end]
-    # Try to open file for writing, and configure as specified
+    # Open file for writing, and try to configure and write data.
     file mkdir [file dirname $file]
     set fid [open $file w]
-    fconfigure $fid {*}$args
-    # Write data to file
-    if {$nonewline} {
-        puts -nonewline $fid $string
-    } else {
-        puts $fid $string
+    try {
+        fconfigure $fid {*}$options
+        # Write data to file
+        if {$nonewline} {
+            puts -nonewline $fid $string
+        } else {
+            puts $fid $string
+        }
+    } finally {
+        close $fid
     }
-    close $fid
     return
 }
 
 # mread --
 #
-# Read matrix from file.
+# Read matrix from file. Dynamically converts from txt or csv.
 #
 # Syntax:
-# mread $refName <$options ...> <-newline> $file
+# mread <$options ...> $file
 #
 # Arguments:
-# refName:          Variable for garbage collection
-# options:          Options to pass to "fconfigure"
-# -newline:         Read the last newline (default ignores last newline)
-# file:             File to read from
+# options:          Options to pass to "fconfigure".
+# file:             File to read from.
 
-proc ::tio::mread {refName args} {
-    # Switch for file extension
-    if {[file extension [lindex $args end]] eq ".csv"} {
-        set matrix [csv2mat [fread {*}$args]]
-    } else {
-        set matrix [txt2mat [fread {*}$args]]
+proc ::tio::mread {args} {
+    # Check arity
+    if {[llength $args] == 0 || [llength $args] % 2 == 0} {
+        return -code error "wrong # args: should be\
+                \"mread ?option value ...? file\""
     }
-    upvar 1 $refName var 
-    ::ndlist::matrix var $matrix
+    # Interpret input
+    set options [lrange $args 0 end-1]
+    set file [lindex $args end]
+    # Switch for file extension and read matrix
+    if {[file extension $file] eq ".csv"} {
+        set matrix [csv2mat [fread {*}$options $file]]
+    } else {
+        set matrix [txt2mat [fread {*}$options $file]]
+    }
+    return $matrix
 }
 
 # mputs --
 #
-# Write matrix to file.
+# Write matrix to file. Dynamically converts to txt or csv.
 #
 # Syntax:
-# mputs $matObj <$options ...> <-nonewline> $file
+# mputs <$options ...> $file $matrix
 #
 # Arguments:
-# matObj:           Matrix object
-# options:          Options to pass to "fconfigure"
-# -newline:         Read the last newline (default ignores last newline)
-# file:             File to read from
+# options:          Options to pass to "fconfigure".
+# file:             File to read from.
+# matrix:           Matrix value to write to file.
 
-proc ::tio::mputs {matObj args} {
-    # Assert matrix type
-    ::vutil::type assert ndlist $matObj
-    if {[$matObj ndims] != 2} {
-        return -code error "$matObj is [$matObj ndims]D, want 2D"
+proc ::tio::mputs {args} {
+    # Check arity
+    if {[llength $args] == 0 || [llength $args] % 2 == 1} {
+        return -code error "wrong # args: should be\
+                \"mputs ?option value ...? file matrix\""
     }
-    # Switch for file extension
-    if {[file extension [lindex $args end]] eq ".csv"} { 
-        fputs {*}$args [mat2csv [$matObj]]
+    # Interpret input
+    set options [lrange $args 0 end-2]
+    set file [lindex $args end-1]
+    set matrix [lindex $args end]
+    # Switch for file extension, and write to file.
+    if {[file extension $file] eq ".csv"} { 
+        fputs {*}$options $file [mat2csv $matrix]
     } else {
-        fputs {*}$args [mat2txt [$matObj]]
+        fputs {*}$options $file [mat2txt $matrix]
     }
     return
 }
 
 # tread --
 #
-# Read table object from file.
+# Read table from file. Dynamically converts from txt or csv.
 #
 # Syntax:
-# tread $refName <$options ...> <-newline> $file
+# tread <$options ...> $file
 #
 # Arguments:
-# refName:          Variable for garbage collection
-# options:          Options to pass to "fconfigure"
-# -newline:         Read the last newline (default ignores last newline)
-# file:             File to read from
+# options:          Options to pass to "fconfigure".
+# file:             File to read from.
 
-proc ::tio::tread {refName args} {
-    # Switch for file extension
-    if {[file extension [lindex $args end]] eq ".csv"} {
-        set table [csv2tbl [fread {*}$args]]
-    } else {
-        set table [txt2tbl [fread {*}$args]]
+proc ::tio::tread {args} {
+    # Check arity
+    if {[llength $args] == 0 || [llength $args] % 2 == 0} {
+        return -code error "wrong # args: should be\
+                \"tread ?option value ...? file\""
     }
-    upvar 1 $refName var 
-    ::taboo::table var $table
+    # Interpret input
+    set options [lrange $args 0 end-1]
+    set file [lindex $args end]
+    # Switch for file extension
+    if {[file extension $file] eq ".csv"} {
+        set table [csv2tbl [fread {*}$options $file]]
+    } else {
+        set table [txt2tbl [fread {*}$options $file]]
+    }
+    return $table
 }
 
 # tputs --
 #
-# Write table object to file.
+# Write table object to file. Dynamically converts to txt or csv.
 #
 # Syntax:
-# tputs $tblObj <$options ...> <-nonewline> $file
+# tputs <$options ...> $file $table
 #
 # Arguments:
-# tblObj:           Table object
-# options:          Options to pass to "fconfigure"
-# -nonewline:       Option to not write a final newline
-# file:             File to write to
+# options:          Options to pass to "fconfigure".
+# file:             File to write to.
+# table:            Table value to write to file.
 
-proc ::tio::tputs {tblObj args} {
-    # Assert table type
-    ::vutil::type assert table $tblObj
-    # Switch for file extension
-    if {[file extension [lindex $args end]] eq ".csv"} { 
-        fputs {*}$args [tbl2csv [$tblObj]]
+proc ::tio::tputs {args} {
+    # Check arity
+    if {[llength $args] == 0 || [llength $args] % 2 == 1} {
+        return -code error "wrong # args: should be\
+                \"tputs ?option value ...? file table\""
+    }
+    # Interpret input
+    set options [lrange $args 0 end-2]
+    set file [lindex $args end-1]
+    set table [lindex $args end]
+    # Switch for file extension, and write to file.
+    if {[file extension $file] eq ".csv"} { 
+        fputs {*}$options $file [tbl2csv $table]
     } else {
-        fputs {*}$args [tbl2txt [$tblObj]]
+        fputs {*}$options $file [tbl2txt $table]
     }
     return
 }
@@ -244,6 +260,8 @@ proc ::tio::tputs {tblObj args} {
 # matrix:       Matrix value to convert
 
 proc ::tio::mat2tbl {matrix} {
+    # Validate matrix
+    set matrix [::ndlist::ndlist 2D $matrix]
     # Extract header from matrix
     set rows [lassign $matrix header]
     # Construct table
@@ -266,6 +284,10 @@ proc ::tio::mat2tbl {matrix} {
 # table:        Table value to convert
 
 proc ::tio::tbl2mat {table} {
+    # Verify field-column format.
+    if {[llength $table] % 2 == 1} {
+        return -code error "missing value to go with key"
+    }
     # Extract header and columns from table
     set header ""
     set columns ""
@@ -274,7 +296,7 @@ proc ::tio::tbl2mat {table} {
         lappend columns $column
     }
     # Construct matrix
-    set rows [::ndlist::Transpose $columns]
+    set rows [::ndlist::Transpose [::ndlist::ndlist 2D $columns]]
     set matrix [list $header {*}$rows]
     # Return matrix value
     return $matrix
@@ -305,12 +327,14 @@ proc ::tio::txt2mat {text} {
             append row \n
         }
     }
-    return $matrix
+    # Validate and return matrix
+    return [::ndlist::ndlist 2D $matrix]
 }
 
 # mat2txt --
 #
-# Convert from matrix to space-delimited text
+# Convert from matrix to space-delimited text. 
+# Note that rows are Tcl lists.
 #
 # Syntax:
 # mat2txt $matrix
@@ -319,7 +343,7 @@ proc ::tio::txt2mat {text} {
 # matrix:       Matrix value
 
 proc ::tio::mat2txt {matrix} {
-    join $matrix \n
+    join [::ndlist::ndlist 2D $matrix] \n
 }
 
 # csv2mat --
@@ -382,7 +406,8 @@ proc ::tio::csv2mat {csv} {
         # Clear csv row
         set csvRow ""
     }
-    return $matrix
+    # Validate and return matrix
+    return [::ndlist::ndlist 2D $matrix]
 }
 
 # mat2csv --
@@ -394,8 +419,8 @@ proc ::tio::csv2mat {csv} {
 
 proc ::tio::mat2csv {matrix} {
     set csvLines ""
-    # Loop through matrix rows
-    foreach row $matrix {
+    # Validate matrix and loop through rows
+    foreach row [::ndlist::ndlist 2D $matrix] {
         set csvRow ""
         foreach val $row {
             # Perform escaping if required
