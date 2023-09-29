@@ -328,4 +328,4 @@ proc ::iou::csv2tbl {csv} {mat2tbl [csv2mat $csv]}
 proc ::iou::csv2txt {csv} {mat2txt [csv2mat $csv]}
 
 # Finally, provide the package
-package provide tio 0.1
+package provide iou 0.1
