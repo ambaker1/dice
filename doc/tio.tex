@@ -7,21 +7,21 @@
 \renewcommand{\cleartooddpage}[1][]{\ignorespaces} % single side
 \newcommand{\caret}{$^\wedge$}
 
-\title{\Huge{Tio: Tcl I/O}\\\large Version \version}
-\author{Alex Baker\\\small\url{https://github.com/ambaker1/Tio}}
+\title{\Huge{Input/Output Utilities (iou)}\\\large Version \version}
+\author{Alex Baker\\\small\url{https://github.com/ambaker1/iou}}
 \date{\small\today}
 \makeindex[columns=2,title={Command Index}]
 \begin{document}
 \maketitle
 \begin{abstract}
 \begin{center}
-Tio provides basic data import/export and conversion utilities.
+The package ``iou'' provides basic data import/export and conversion utilities.
 Four datatypes are supported: space-delimited values (txt), comma-separated values (csv), matrices (mat), and tables (tbl). 
 \end{center}
 \end{abstract}
 \clearpage
 \section{File Input/Output}
-The commands \cmdlink{fread} and \cmdlink{fputs} simplify file input/output in Tcl. 
+The commands \cmdlink{fread} and \cmdlink{fputs} simplify file I/O in Tcl. 
 \begin{syntax}
 \command{fread} <\$option \$value ...> <-newline> \$file
 \end{syntax}
@@ -54,7 +54,8 @@ hello world
 
 \clearpage
 \section{Data Conversion}
-Tio provides conversion utilities for different datatypes. The main datatype is matrix, or \textbf{mat}. 
+This package also provides conversion utilities for different datatypes. 
+The main datatype is matrix, or \textbf{mat}. 
 \subsection{Matrix (mat)}
 The matrix (\textbf{mat}) datatype is a nested Tcl list, where each list element represents a row vector of equal length.
 This definition is compatible with the matrix data type provided by the \textcolor{blue}{\href{https://github.com/ambaker1/ndlist}{ndlist}} package. 

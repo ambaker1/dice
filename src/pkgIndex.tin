@@ -1,2 +1,2 @@
 if {![package vsatisfies [package provide Tcl] 8.6]} {return}
-package ifneeded tio @VERSION@ [list source [file join $dir tio.tcl]]
+package ifneeded iou @VERSION@ [list source [file join $dir iou.tcl]]
