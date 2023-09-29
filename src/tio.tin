@@ -16,8 +16,6 @@ package require ndlist @NDLIST_VERSION@
 namespace eval ::tio {
     # Basic file input/output
     namespace export fread fputs; # basic read/write
-    namespace export mread mputs; # matrix read/write
-    namespace export tread tputs; # table read/write
     # Data conversions
     namespace export mat2tbl tbl2mat; # matrix <-> table
     namespace export mat2txt txt2mat; # matrix <-> text
@@ -117,126 +115,6 @@ proc ::tio::fputs {args} {
         }
     } finally {
         close $fid
-    }
-    return
-}
-
-# mread --
-#
-# Read matrix from file. Dynamically converts from txt or csv.
-#
-# Syntax:
-# mread <$options ...> $file
-#
-# Arguments:
-# options:          Options to pass to "fconfigure".
-# file:             File to read from.
-
-proc ::tio::mread {args} {
-    # Check arity
-    if {[llength $args] == 0 || [llength $args] % 2 == 0} {
-        return -code error "wrong # args: should be\
-                \"mread ?option value ...? file\""
-    }
-    # Interpret input
-    set options [lrange $args 0 end-1]
-    set file [lindex $args end]
-    # Switch for file extension and read matrix
-    if {[file extension $file] eq ".csv"} {
-        set matrix [csv2mat [fread {*}$options $file]]
-    } else {
-        set matrix [txt2mat [fread {*}$options $file]]
-    }
-    return $matrix
-}
-
-# mputs --
-#
-# Write matrix to file. Dynamically converts to txt or csv.
-#
-# Syntax:
-# mputs <$options ...> $file $matrix
-#
-# Arguments:
-# options:          Options to pass to "fconfigure".
-# file:             File to read from.
-# matrix:           Matrix value to write to file.
-
-proc ::tio::mputs {args} {
-    # Check arity
-    if {[llength $args] == 0 || [llength $args] % 2 == 1} {
-        return -code error "wrong # args: should be\
-                \"mputs ?option value ...? file matrix\""
-    }
-    # Interpret input
-    set options [lrange $args 0 end-2]
-    set file [lindex $args end-1]
-    set matrix [lindex $args end]
-    # Switch for file extension, and write to file.
-    if {[file extension $file] eq ".csv"} { 
-        fputs {*}$options $file [mat2csv $matrix]
-    } else {
-        fputs {*}$options $file [mat2txt $matrix]
-    }
-    return
-}
-
-# tread --
-#
-# Read table from file. Dynamically converts from txt or csv.
-#
-# Syntax:
-# tread <$options ...> $file
-#
-# Arguments:
-# options:          Options to pass to "fconfigure".
-# file:             File to read from.
-
-proc ::tio::tread {args} {
-    # Check arity
-    if {[llength $args] == 0 || [llength $args] % 2 == 0} {
-        return -code error "wrong # args: should be\
-                \"tread ?option value ...? file\""
-    }
-    # Interpret input
-    set options [lrange $args 0 end-1]
-    set file [lindex $args end]
-    # Switch for file extension
-    if {[file extension $file] eq ".csv"} {
-        set table [csv2tbl [fread {*}$options $file]]
-    } else {
-        set table [txt2tbl [fread {*}$options $file]]
-    }
-    return $table
-}
-
-# tputs --
-#
-# Write table object to file. Dynamically converts to txt or csv.
-#
-# Syntax:
-# tputs <$options ...> $file $table
-#
-# Arguments:
-# options:          Options to pass to "fconfigure".
-# file:             File to write to.
-# table:            Table value to write to file.
-
-proc ::tio::tputs {args} {
-    # Check arity
-    if {[llength $args] == 0 || [llength $args] % 2 == 1} {
-        return -code error "wrong # args: should be\
-                \"tputs ?option value ...? file table\""
-    }
-    # Interpret input
-    set options [lrange $args 0 end-2]
-    set file [lindex $args end-1]
-    set table [lindex $args end]
-    # Switch for file extension, and write to file.
-    if {[file extension $file] eq ".csv"} { 
-        fputs {*}$options $file [tbl2csv $table]
-    } else {
-        fputs {*}$options $file [tbl2txt $table]
     }
     return
 }
