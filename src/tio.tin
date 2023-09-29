@@ -1,6 +1,6 @@
 # tio.tcl
 ################################################################################
-# Data import and export, and datatype conversions
+# Tcl data input/output and conversions
 
 # Copyright (C) 2023 Alex Baker, ambaker1@mtu.edu
 # All rights reserved. 
@@ -14,7 +14,7 @@ package require ndlist @NDLIST_VERSION@
 
 # Define namespace
 namespace eval ::tio {
-    # Basic file input/output
+    # File input/output
     namespace export fread fputs; # basic read/write
     # Data conversions
     namespace export mat2tbl tbl2mat; # matrix <-> table
@@ -119,7 +119,7 @@ proc ::tio::fputs {args} {
     return
 }
 
-# Raw data conversions
+# Data conversions
 ################################################################################
 # mat: Base type. List of rows, using Tcl lists. See ndlist package.
 # tbl: Zipped list of header row and columns. See taboo package.
