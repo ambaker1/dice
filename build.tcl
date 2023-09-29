@@ -37,109 +37,46 @@ test binary_io {
 
 # Acid test for csv parser/writer
 # Acid test files from https://github.com/maxogden/csv-spectrum
-
 set csvDir "tests/csv_samples"
-set commas_in_quotes [fread $csvDir/comma_in_quotes.csv]
-set empty [fread $csvDir/empty.csv]
-set empty_crlf [fread $csvDir/empty_crlf.csv]
-set escaped_quotes [fread $csvDir/escaped_quotes.csv]
-set json [fread $csvDir/json.csv]
-set newlines [fread $csvDir/newlines.csv]
-set quotes_and_newlines [fread $csvDir/quotes_and_newlines.csv]
-set simple [fread $csvDir/simple.csv]
-set simple_crlf [fread $csvDir/simple_crlf.csv]
-set utf8 [fread $csvDir/utf8.csv]
+set csv1 [fread $csvDir/comma_in_quotes.csv]
+set csv2 [fread $csvDir/empty.csv]
+set csv3 [fread $csvDir/empty_crlf.csv]
+set csv4 [fread $csvDir/escaped_quotes.csv]
+set csv5 [fread $csvDir/json.csv]
+set csv6 [fread $csvDir/newlines.csv]
+set csv7 [fread $csvDir/quotes_and_newlines.csv]
+set csv8 [fread $csvDir/simple.csv]
+set csv9 [fread $csvDir/simple_crlf.csv]
+set csv10 [fread $csvDir/utf8.csv]
 
-test commas_in_quotes {
-    # from commas_in_quotes.csv
-} -body {
-    csv2mat [fread $csvDir/comma_in_quotes.csv]
-} -result {{first last address city zip} {John Doe {120 any st.} {Anytown, WW} 08123}}
-
-test empty {
-    # from empty.csv
-} -body {
-    csv2mat [fread $csvDir/empty.csv]
-} -result {{a b c} {1 {} {}} {2 3 4}}
-
-test empty_crlf {
-
-} -body {
-    csv2mat [fread $csvDir/empty_crlf.csv]
-} -result {{a b c} {1 {} {}} {2 3 4}}
-
-assert [readMatrix $csvDir/comma_in_quotes.csv] eq \
-{{first last address city zip} {John Doe {120 any st.} {Anytown, WW} 08123}}
-
-assert [csv2mat $empty] eq \
-
-
-assert [ $empty_crlf] eq \
-
-
-assert [csv2mat $escaped_quotes] eq \
-{{a b} {1 {ha "ha" ha}} {3 4}}
-
-assert [csv2mat $json] eq \
-{{key val} {1 {{"type": "Point", "coordinates": [102.0, 0.5]}}}}
-
-assert [csv2mat $newlines] eq \
-{{a b c} {1 2 3} {{Once upon 
+puts "Checking csv reader"
+assert [csv2mat $csv1] eq {{first last address city zip} {John Doe {120 any st.} {Anytown, WW} 08123}}
+assert [csv2mat $csv2] eq {{a b c} {1 {} {}} {2 3 4}}
+assert [csv2mat $csv3] eq {{a b c} {1 {} {}} {2 3 4}}
+assert [csv2mat $csv4] eq {{a b} {1 {ha "ha" ha}} {3 4}}
+assert [csv2mat $csv5] eq {{key val} {1 {{"type": "Point", "coordinates": [102.0, 0.5]}}}}
+assert [csv2mat $csv6] eq {{a b c} {1 2 3} {{Once upon 
 a time} 5 6} {7 8 9}}
-
-assert [csv2mat $quotes_and_newlines] eq \
-{{a b} {1 {ha 
+assert [csv2mat $csv7] eq {{a b} {1 {ha 
 "ha" 
 ha}} {3 4}}
+assert [csv2mat $csv8] eq {{a b c} {1 2 3}}
+assert [csv2mat $csv9] eq {{a b c} {1 2 3}}
+assert [csv2mat $csv10] eq {{a b c} {1 2 3} {4 5 ʤ}}
 
-assert [csv2mat $simple] eq \
-{{a b c} {1 2 3}}
-
-assert [csv2mat $simple_crlf] eq \
-{{a b c} {1 2 3}}
-
-assert [csv2mat $utf8] eq \
-{{a b c} {1 2 3} {4 5 ʤ}}
-
-
-# Reverse acid-test
-assert [mat2csv [csv2mat $commas_in_quotes]] eq $commas_in_quotes
-# SKIPPING WRITE TEST FOR EMPTY CELLS - EMPTY CELLS ARE WRITTEN LIKE ,, RATHER THAN ,"",
-# assert [mat2csv [csv2mat $empty]] eq $empty
-# assert [mat2csv [csv2mat $empty_crlf]] eq $empty_crlf
-assert [mat2csv [csv2mat $escaped_quotes]] eq $escaped_quotes
-assert [mat2csv [csv2mat $json]] eq $json
-assert [mat2csv [csv2mat $newlines]] eq $newlines
-assert [mat2csv [csv2mat $quotes_and_newlines]] eq $quotes_and_newlines
-assert [mat2csv [csv2mat $simple]] eq $simple
-assert [mat2csv [csv2mat $simple_crlf]] eq $simple_crlf
-assert [mat2csv [csv2mat $utf8]] eq $utf8
-
-
-# Conversion acid test
-set table [csv2tbl $commas_in_quotes]
-assert [txt2csv [mat2txt [tbl2mat $table]]] eq $commas_in_quotes
-
-set table [csv2tbl $escaped_quotes]
-assert [txt2csv [mat2txt [tbl2mat $table]]] eq $escaped_quotes
-
-set table [csv2tbl $json]
-assert [txt2csv [mat2txt [tbl2mat $table]]] eq $json
-
-set table [csv2tbl $newlines]
-assert [txt2csv [mat2txt [tbl2mat $table]]] eq $newlines
-
-set table [csv2tbl $quotes_and_newlines]
-assert [txt2csv [mat2txt [tbl2mat $table]]] eq $quotes_and_newlines
-
-set table [csv2tbl $simple]
-assert [txt2csv [mat2txt [tbl2mat $table]]] eq $simple
-
-set table [csv2tbl $simple_crlf]
-assert [txt2csv [mat2txt [tbl2mat $table]]] eq $simple_crlf
-
-set table [csv2tbl $utf8]
-assert [txt2csv [mat2txt [tbl2mat $table]]] eq $utf8
+puts "Checking conversions"
+assert [txt2csv [tbl2txt [csv2tbl $csv1]]]] eq $csv1
+# Skipping empty.csv and empty_crlf.csv - blanks are represented by "".
+# assert [txt2csv [tbl2txt [csv2tbl $csv2]]]] eq $csv2
+# assert [txt2csv [tbl2txt [csv2tbl $csv3]]]] eq $csv3
+assert [txt2csv [tbl2txt [csv2tbl $csv4]]]] eq $csv4
+assert [txt2csv [tbl2txt [csv2tbl $csv5]]]] eq $csv5
+assert [txt2csv [tbl2txt [csv2tbl $csv6]]]] eq $csv6
+assert [txt2csv [tbl2txt [csv2tbl $csv7]]]] eq $csv7
+assert [txt2csv [tbl2txt [csv2tbl $csv8]]]] eq $csv8
+assert [txt2csv [tbl2txt [csv2tbl $csv9]]]] eq $csv9
+assert [txt2csv [tbl2txt [csv2tbl $csv10]]]] eq $csv10
+>>>>>>> Stashed changes
 
 # Check number of failed tests
 set nFailed $::tcltest::numTests(Failed)
@@ -158,6 +95,6 @@ file copy -force {*}[glob -directory build *] [pwd]
 exec tclsh install.tcl
 
 # Verify installation
-tin forget taboo
+tin forget tio
 tin clear
-tin import taboo -exact $version
+tin import tio -exact $version
