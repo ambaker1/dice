@@ -7,20 +7,20 @@
 \renewcommand{\cleartooddpage}[1][]{\ignorespaces} % single side
 \newcommand{\caret}{$^\wedge$}
 
-\title{\Huge{Input/Output Utilities (iou)}\\\large Version \version}
-\author{Alex Baker\\\small\url{https://github.com/ambaker1/iou}}
+\title{\Huge{Data Import, Conversion, and Export (dice)}\\\large Version \version}
+\author{Alex Baker\\\small\url{https://github.com/ambaker1/dice}}
 \date{\small\today}
 \makeindex[columns=2,title={Command Index}]
 \begin{document}
 \maketitle
 \begin{abstract}
 \begin{center}
-The package ``iou'' provides basic data import/export and conversion utilities.
+The package ``dice'' provides basic data import/export and conversion utilities.
 Four datatypes are supported: space-delimited values (txt), comma-separated values (csv), matrices (mat), and tables (tbl). 
 \end{center}
 \end{abstract}
 \clearpage
-\section{File Input/Output}
+\section{File Import/Export}
 The commands \cmdlink{fread} and \cmdlink{fputs} simplify file I/O in Tcl. 
 \begin{syntax}
 \command{fread} <\$option \$value ...> <-newline> \$file
@@ -39,7 +39,7 @@ The commands \cmdlink{fread} and \cmdlink{fputs} simplify file I/O in Tcl.
 \$file & File to write data to. \\
 \$string & Data to write to file.
 \end{args}
-\begin{example}{File input/output}
+\begin{example}{File import/export}
 \begin{lstlisting}
 # Export data to file (creates or overwrites the file)
 fputs example.txt "hello world"
