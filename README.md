@@ -1,4 +1,4 @@
-# Data Import, Conversions, and Export (dice)
+# Data Import, Conversion, and Export (dice)
 Utilities for converting between different Tcl datatypes and file formats.
 Intended for use with packages [ndlist](https://github.com/ambaker1/ndlist) and [taboo](https://github.com/ambaker1/taboo).
 
