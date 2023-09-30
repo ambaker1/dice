@@ -1,6 +1,6 @@
-# iou.tcl
+# dice.tcl
 ################################################################################
-# Data import/export and conversion utilities
+# Data import, conversion, and export
 
 # Copyright (C) 2023 Alex Baker, ambaker1@mtu.edu
 # All rights reserved. 
@@ -13,7 +13,7 @@
 package require ndlist 0.2
 
 # Define namespace
-namespace eval ::iou {
+namespace eval ::dice {
     # File input/output
     namespace export fread fputs; # basic read/write
     # Data conversions
@@ -40,7 +40,7 @@ namespace eval ::iou {
 # -newline:         Read the last newline (default ignores last newline).
 # file:             File to read from.
 
-proc ::iou::fread {args} {
+proc ::dice::fread {args} {
     # Check for -newline option
     if {[lindex $args end-1] eq "-newline"} {
         set nonewline false
@@ -85,7 +85,7 @@ proc ::iou::fread {args} {
 # file:             File to write to.
 # string:           String to write to file.
 
-proc ::iou::fputs {args} {
+proc ::dice::fputs {args} {
     # Check for -nonewline option
     if {[lindex $args end-2] eq "-nonewline"} {
         set nonewline true
@@ -137,7 +137,7 @@ proc ::iou::fputs {args} {
 # Arguments:
 # matrix:       Matrix value to convert
 
-proc ::iou::mat2tbl {matrix} {
+proc ::dice::mat2tbl {matrix} {
     # Validate matrix
     set matrix [::ndlist::ndlist 2D $matrix]
     # Extract header from matrix
@@ -161,7 +161,7 @@ proc ::iou::mat2tbl {matrix} {
 # Arguments:
 # table:        Table value to convert
 
-proc ::iou::tbl2mat {table} {
+proc ::dice::tbl2mat {table} {
     # Verify field-column format.
     if {[llength $table] % 2 == 1} {
         return -code error "missing value to go with key"
@@ -192,7 +192,7 @@ proc ::iou::tbl2mat {table} {
 # Arguments:
 # text:     Text to convert.
 
-proc ::iou::txt2mat {text} {
+proc ::dice::txt2mat {text} {
     set matrix ""
     set row ""
     foreach line [split $text \n] {
@@ -220,7 +220,7 @@ proc ::iou::txt2mat {text} {
 # Arguments:
 # matrix:       Matrix value
 
-proc ::iou::mat2txt {matrix} {
+proc ::dice::mat2txt {matrix} {
     join [::ndlist::ndlist 2D $matrix] \n
 }
 
@@ -235,7 +235,7 @@ proc ::iou::mat2txt {matrix} {
 # Arguments:
 # csv:          CSV string to convert
 
-proc ::iou::csv2mat {csv} {
+proc ::dice::csv2mat {csv} {
     # Initialize variables
     set matrix ""; # Output matrix
     set csvRow ""; # CSV-formatted row of data
@@ -295,7 +295,7 @@ proc ::iou::csv2mat {csv} {
 # Arguments:
 # matrix:       Matrix to convert
 
-proc ::iou::mat2csv {matrix} {
+proc ::dice::mat2csv {matrix} {
     set csvLines ""
     # Validate matrix and loop through rows
     foreach row [::ndlist::ndlist 2D $matrix] {
@@ -316,16 +316,16 @@ proc ::iou::mat2csv {matrix} {
 ################################################################################
 
 # From Table (tbl)
-proc ::iou::tbl2csv {table} {mat2csv [tbl2mat $table]}
-proc ::iou::tbl2txt {table} {mat2txt [tbl2mat $table]}
+proc ::dice::tbl2csv {table} {mat2csv [tbl2mat $table]}
+proc ::dice::tbl2txt {table} {mat2txt [tbl2mat $table]}
 
 # From Text (txt)
-proc ::iou::txt2tbl {text} {mat2tbl [txt2mat $text]}
-proc ::iou::txt2csv {text} {mat2csv [txt2mat $text]}
+proc ::dice::txt2tbl {text} {mat2tbl [txt2mat $text]}
+proc ::dice::txt2csv {text} {mat2csv [txt2mat $text]}
 
 # From CSV (csv)
-proc ::iou::csv2tbl {csv} {mat2tbl [csv2mat $csv]}
-proc ::iou::csv2txt {csv} {mat2txt [csv2mat $csv]}
+proc ::dice::csv2tbl {csv} {mat2tbl [csv2mat $csv]}
+proc ::dice::csv2txt {csv} {mat2txt [csv2mat $csv]}
 
 # Finally, provide the package
-package provide iou 0.1
+package provide dice 0.1

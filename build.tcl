@@ -10,8 +10,8 @@ tin bake src build $config
 tin bake doc/template/version.tin doc/template/version.tex $config
 
 # Import 
-source build/iou.tcl 
-namespace import iou::*
+source build/dice.tcl 
+namespace import dice::*
 
 test file_io {
     # Write to file and read back the result
@@ -135,6 +135,6 @@ file copy -force {*}[glob -directory build *] [pwd]
 exec tclsh install.tcl
 
 # Verify installation
-tin forget iou
+tin forget dice
 tin clear
-tin import iou -exact $version
+tin import dice -exact $version
