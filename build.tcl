@@ -17,11 +17,11 @@ test file_io {
     # Write to file and read back the result
 } -body {
     # Export data to file (creates or overwrites the file)
-    fputs tests/example.txt "hello world"
+    fputs examples/example.txt "hello world"
     # Import the contents of the file (requires that the file exists)
-    fread tests/example.txt
+    fread examples/example.txt
 } -result {hello world}
-file delete tests/example.txt
+file delete examples/example.txt
 
 test binary_io {
     # fconfigure feature of fread
@@ -30,12 +30,12 @@ test binary_io {
     # Example modified from example on tcl wiki written by Mac Cody and Jeff David
     # https://wiki.tcl-lang.org/page/Working+with+binary+data
     set outBinData [binary format s2Sa6B8 {100 -2} 100 foobar 01000001]
-    fputs -translation binary tests/binfile.bin $outBinData
-    set inBinData [fread -translation binary tests/binfile.bin]
+    fputs -translation binary examples/binfile.bin $outBinData
+    set inBinData [fread -translation binary examples/binfile.bin]
     assert [binary scan $inBinData s2Sa6B8 val1 val2 val3 val4] == 4
     list $val1 $val2 $val3 $val4
 } -result {{100 -2} 100 foobar 01000001}
-file delete tests/binfile.bin
+file delete examples/binfile.bin
 
 # Validate basic conversions
 set mat {{A B C {} A} {1 2 3 4 5} {6 7 8 9 10}}

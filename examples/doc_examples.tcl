@@ -1,5 +1,5 @@
 package require tin
-tin import iou
+tin import dice
 
 puts "File input/output"
 # Export data to file (creates or overwrites the file)
