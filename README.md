@@ -1,7 +1,6 @@
-# Input/Output Utilities (dice)
-Data import, conversion, and export
-
-Intended for use with the packages [ndlist](https://github.com/ambaker1/ndlist) and [taboo](https://github.com/ambaker1/taboo).
+# Data Import, Conversions, and Export (dice)
+Utilities for converting between different Tcl datatypes and file formats.
+Intended for use with packages [ndlist](https://github.com/ambaker1/ndlist) and [taboo](https://github.com/ambaker1/taboo).
 
 Full documentation [here](https://raw.githubusercontent.com/ambaker1/dice/main/doc/dice.pdf).
 
